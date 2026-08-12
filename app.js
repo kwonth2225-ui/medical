@@ -1,28 +1,6 @@
 const $ = id => document.getElementById(id);
 const money = n => Math.round(n).toLocaleString("ko-KR") + "원";
 
-function isHolidayOrWeekend(d) {
-  return d.getDay() === 0 || d.getDay() === 6;
-}
-
-function isNight(d) {
-  const h = d.getHours();
-  return h >= 18 || h < 9;
-}
-
-function autoSurcharge() {
-  const d = new Date();
-  return isHolidayOrWeekend(d) || isNight(d);
-}
-
-// 페이지가 처음 로드될 때 현재 시간이 야간/주말이면 스위치를 자동으로 켜둠
-window.addEventListener("DOMContentLoaded", () => {
-  if ($("manualSurcharge")) {
-    $("manualSurcharge").checked = autoSurcharge();
-  }
-  calculate();
-});
-
 function calculate() {
   const distance = Math.max(0, Number($("distance").value) || 0);
   const wait = Math.max(0, Number($("wait").value) || 0);
@@ -31,7 +9,7 @@ function calculate() {
   const extraKm = Math.max(0, distance - 10);
   const extraFee = extraKm * 2300;
 
-  // [수정 포인트] 사용자가 스위치를 끄면(Unchecked) 무조건 정상요금, 켜면(Checked) 할증요금 적용
+  // [수정] 수동 스위치 상태에 따라서만 할증 적용 (켜면 ON, 끄면 OFF)
   const surcharge = $("manualSurcharge").checked;
   const surchargeFee = surcharge ? (19100 + extraKm * 460) : 0;
 
@@ -51,25 +29,32 @@ function calculate() {
   $("waitFee").textContent = money(waitFee);
 
   const label = $("surchargeLabel");
-  label.textContent = surcharge ? "할증 적용" : "정상요금";
-  label.className = surcharge ? "active" : "normal";
+  if (label) {
+    label.textContent = surcharge ? "할증 적용" : "정상요금";
+    label.className = surcharge ? "active" : "normal";
+  }
 }
 
 // 이벤트 연결
-$("calc").addEventListener("click", calculate);
+if ($("calc")) $("calc").addEventListener("click", calculate);
+
 ["distance", "wait", "manualSurcharge"].forEach(id => {
-  if ($(id)) {
-    $(id).addEventListener("input", calculate);
-    $(id).addEventListener("change", calculate);
+  const el = $(id);
+  if (el) {
+    el.addEventListener("input", calculate);
+    el.addEventListener("change", calculate);
   }
 });
 
-$("reset").addEventListener("click", () => {
-  $("distance").value = "";
-  $("wait").value = "";
-  // 초기화 시 다시 현재 시간 기준으로 스위치 설정
-  $("manualSurcharge").checked = autoSurcharge();
-  calculate();
-});
+// 초기화 버튼 클릭 시 입력값 및 스위치 모두 초기화
+if ($("reset")) {
+  $("reset").addEventListener("click", () => {
+    if ($("distance")) $("distance").value = "";
+    if ($("wait")) $("wait").value = "";
+    if ($("manualSurcharge")) $("manualSurcharge").checked = false;
+    calculate();
+  });
+}
 
+// 처음 실행 시 계산
 calculate();
