@@ -9,7 +9,7 @@ function calculate() {
   const extraKm = Math.max(0, distance - 10);
   const extraFee = extraKm * 2300;
 
-  // [수정] 수동 스위치 상태에 따라서만 할증 적용 (켜면 ON, 끄면 OFF)
+  // 스위치 ON/OFF로만 할증 적용 결정 (시간 자동 판정 제거)
   const surcharge = $("manualSurcharge").checked;
   const surchargeFee = surcharge ? (19100 + extraKm * 460) : 0;
 
@@ -35,7 +35,7 @@ function calculate() {
   }
 }
 
-// 이벤트 연결
+// 버튼 및 입력 이벤트 연결
 if ($("calc")) $("calc").addEventListener("click", calculate);
 
 ["distance", "wait", "manualSurcharge"].forEach(id => {
@@ -46,7 +46,7 @@ if ($("calc")) $("calc").addEventListener("click", calculate);
   }
 });
 
-// 초기화 버튼 클릭 시 입력값 및 스위치 모두 초기화
+// 초기화 버튼 클릭 시 입력값 및 스위치 OFF로 초기화
 if ($("reset")) {
   $("reset").addEventListener("click", () => {
     if ($("distance")) $("distance").value = "";
@@ -56,5 +56,5 @@ if ($("reset")) {
   });
 }
 
-// 처음 실행 시 계산
+// 페이지 첫 실행 시 계산
 calculate();
